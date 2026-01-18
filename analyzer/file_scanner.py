@@ -3,19 +3,42 @@ from pathlib import Path
 
 IGNORED_DIRS = {"venv", "__pycache__", ".git"}
 
+SUPPORTED_EXTENSIONS = {
+    ".py": "python",
+    ".html": "html",
+    ".css": "css",
+    ".js": "javascript",
+    ".java": "java",
+    ".c": "c",
+    ".cpp": "cpp",
+    ".h": "c_header",
+    ".cs": "csharp",
+    ".go": "go",
+    ".rs": "rust",
+    ".php": "php",
+    ".kt": "kotlin",
+    ".swift": "swift",
+}
+
 def scan_project(root_path: str) -> dict:
+    """
+    Scans a project directory and collects file statistics.
+    Returns total file count, language-wise file counts, and file paths.
+    """
+
     root = Path(root_path).resolve()
 
     total_files = 0
-    python_files = 0
-    python_paths = []
+    language_counts = {}
+    language_paths = {}
 
     for path in root.rglob("*"):
+
+        # Handle directories
         if path.is_dir():
             if path.name.startswith(".") or path.name in IGNORED_DIRS:
-                # Skip ignored directories by pruning
                 try:
-                    path.rmdir()  # noop if not empty; keeps traversal sane on Windows
+                    path.rmdir()  # Safe no-op on Windows
                 except Exception:
                     pass
             continue
@@ -26,12 +49,18 @@ def scan_project(root_path: str) -> dict:
 
         total_files += 1
 
-        if path.suffix == ".py":
-            python_files += 1
-            python_paths.append(str(path.relative_to(root)))
+        suffix = path.suffix.lower()
+
+        if suffix in SUPPORTED_EXTENSIONS:
+            language = SUPPORTED_EXTENSIONS[suffix]
+
+            language_counts[language] = language_counts.get(language, 0) + 1
+            language_paths.setdefault(language, []).append(
+                str(path.relative_to(root))
+            )
 
     return {
         "total_files": total_files,
-        "python_files": python_files,
-        "python_paths": python_paths,
+        "language_counts": language_counts,
+        "language_paths": language_paths,
     }
