@@ -1,3 +1,4 @@
+The project is purely based on ML,NLP:- We track the input from the user,we visit every file in the project folder and we analyze the code quality,folder structure,documentation,testing and we give a final score out of 100 along with the weaknesses and risks in the project. We also integrate LLM to help the user understand what is wrong with the code and how to fix it by providing code snippets.
 Here is the 30 days road map of completing the APAS project:
 Day 1: Project Setup & Requirement Gathering
 Create Git repository
