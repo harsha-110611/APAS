@@ -1,0 +1,148 @@
+Here is the 30 days road map of completing the APAS project:
+Day 1: Project Setup & Requirement Gathering
+Create Git repository
+Local environment setup
+Finalize scope (Python-only, folder-based analysis)
+Define core metrics & outputs
+
+Day 2: Project Structure Initialization
+Create base folder structure
+Create analyzer modules
+Setup entry point (main.py)
+
+Day 3: File System Scanner
+Traverse project directories
+Detect Python files
+Ignore virtual environments & junk files
+
+Day 4: File & LOC Metrics
+Count total files
+Count Python files
+Calculate Lines of Code (LOC)
+Store raw stats
+
+Day 5: Folder Structure Analysis
+Folder depth calculation
+Identify poor project organization
+Detect monolithic structures
+
+Day 6: File Size & Module Distribution
+Detect large files
+Identify poor module separation
+Generate structure score
+
+Day 7: Scoring Engine – v1
+Normalize collected metrics
+Generate structure score
+Store analysis report (JSON)
+
+Day 8: Code Quality Checks
+Function length detection
+Naming convention analysis
+Comment presence check
+
+Day 9: Code Complexity Analysis
+Nesting depth calculation
+God-function detection
+Basic cyclomatic complexity
+
+Day 10: Documentation Analysis
+README presence
+README quality heuristics
+Missing documentation detection
+
+Day 11: Testing Analysis
+Test folder detection
+Test file counting
+Coverage proxy metrics
+
+Day 12: Final Scoring Aggregation
+Combine all metrics
+Weighted scoring system
+Final score out of 100
+
+Day 13: Weakness & Risk Detection
+Identify critical weak areas
+Categorize issues (High / Medium / Low)
+
+Day 14: Analyzer Freeze & Refactor
+Code cleanup
+Remove false positives
+Freeze analyzer metrics
+
+🧠 AI INTEGRATION PHASE
+Day 15: LLM Integration Setup
+API integration
+Secure key handling
+System prompt design
+
+Day 16: Analysis-Aware Chatbot
+Feed analysis JSON to AI
+Restrict AI to analysis context
+
+Day 17: Reviewer Mode
+AI answers “What’s wrong?”
+AI explains project weaknesses
+
+Day 18: Issue Selection Flow
+User selects specific issue
+Context-aware AI responses
+
+Day 19: Code-Aware Assistance
+Load exact source files
+Send targeted code to AI
+
+Day 20: Explanation Engine
+AI explains why code is bad
+Educational responses
+
+Day 21: Refactor & Fix Generator
+Generate improved code snippets
+Suggest refactored functions
+
+🎨 POLISH & DELIVERY PHASE
+Day 22: Visualization Engine
+Pie chart generation
+Score breakdown visualization
+
+Day 23: Report Formatting
+Human-readable report
+Developer-friendly language
+
+Day 24: End-to-End Integration
+Analyzer → Charts → AI
+Full system pipeline
+
+Day 25: Performance Optimization
+Handle large projects
+Optimize file scanning
+
+Day 26: Demo Scenario Design
+Before/after improvement flow
+Demo dataset preparation
+
+Day 27: Documentation & README
+Architecture explanation
+Usage instructions
+Feature list
+
+Day 28: UX & Output Polish
+Clean CLI / UI output
+Improve chart visuals
+
+Day 29: Final Testing & Freeze
+Stress testing
+Bug fixes only
+Feature freeze
+
+Day 30: Submission & Demo
+Final build
+Demo recording
+
+Project submission
+
+🔒 FINAL WARNING
+
+This roadmap is locked.
+You don’t “adjust” it when you feel tired.
+You execute it or waste 30 days of your life.
