@@ -6,8 +6,7 @@ from analyzer.quality import analyze_quality
 from analyzer.complexity import analyze_complexity
 from analyzer.documentation import analyze_documentation
 from analyzer.scoring import compute_final_score
-
-
+from analyzer.visualization import generate_score_pie
 
 def main():
     target = sys.argv[1] if len(sys.argv) > 1 else "."
@@ -32,5 +31,8 @@ def main():
     print("DOCUMENTATION:", docs)
     final = compute_final_score(structure, quality, complexity, docs)
     print("FINAL SCORE:", final)
+    chart_path = generate_score_pie(final["component_scores"])
+    print("CHART SAVED AT:", chart_path)
+
 if __name__ == "__main__":
     main()
