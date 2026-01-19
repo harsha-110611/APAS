@@ -5,6 +5,8 @@ from analyzer.structure import analyze_structure
 from analyzer.quality import analyze_quality
 from analyzer.complexity import analyze_complexity
 from analyzer.documentation import analyze_documentation
+from analyzer.scoring import compute_final_score
+
 
 
 def main():
@@ -28,5 +30,7 @@ def main():
     print("STRUCTURE:", structure)
     docs = analyze_documentation(target)
     print("DOCUMENTATION:", docs)
+    final = compute_final_score(structure, quality, complexity, docs)
+    print("FINAL SCORE:", final)
 if __name__ == "__main__":
     main()
