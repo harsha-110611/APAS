@@ -7,6 +7,7 @@ from analyzer.complexity import analyze_complexity
 from analyzer.documentation import analyze_documentation
 from analyzer.scoring import compute_final_score
 from analyzer.visualization import generate_score_pie
+from analyzer.insights import generate_insights
 
 def main():
     target = sys.argv[1] if len(sys.argv) > 1 else "."
@@ -33,6 +34,7 @@ def main():
     print("FINAL SCORE:", final)
     chart_path = generate_score_pie(final["component_scores"])
     print("CHART SAVED AT:", chart_path)
-
+    insights = generate_insights(final)
+    print("INSIGHTS:",insights)
 if __name__ == "__main__":
     main()
