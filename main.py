@@ -2,6 +2,7 @@
 import sys
 from analyzer.file_scanner import scan_project
 from analyzer.structure import analyze_structure
+from analyzer.quality import analyze_quality
 
 def main():
     target = sys.argv[1] if len(sys.argv) > 1 else "."
@@ -11,6 +12,11 @@ def main():
         target,
         scan.get("language_paths", {}).get("python", [])
     )
+    quality = analyze_quality(
+        target,
+        scan.get("language_paths", {}).get("python", [])
+    )
+    print("QUALITY:", quality)
 
     print("SCAN:", scan)
     print("STRUCTURE:", structure)
