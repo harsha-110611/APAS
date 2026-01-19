@@ -8,6 +8,7 @@ from analyzer.documentation import analyze_documentation
 from analyzer.scoring import compute_final_score
 from analyzer.visualization import generate_score_pie
 from analyzer.insights import generate_insights
+from analyzer.report import format_report
 
 def main():
     target = sys.argv[1] if len(sys.argv) > 1 else "."
@@ -36,5 +37,7 @@ def main():
     print("CHART SAVED AT:", chart_path)
     insights = generate_insights(final)
     print("INSIGHTS:",insights)
+    report_text = format_report(final, insights)
+    print(report_text)
 if __name__ == "__main__":
     main()
