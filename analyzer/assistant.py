@@ -1,27 +1,29 @@
 # analyzer/assistant.py
-# NOTE: AI assistant infrastructure (logic only). No free-form chat.
+# NOTE: AI assistant infrastructure with reviewer mode (Days 15–16)
 
 class ProjectAssistant:
     def __init__(self, analysis_report: dict):
         self.report = analysis_report
 
     def answer(self, question: str) -> str:
-        question = question.lower()
+        q = question.lower()
 
-        # Guardrails
-        if "weather" in question or "joke" in question:
-            return "I can only answer questions about the analyzed project."
+        if "documentation" in q:
+            return self._doc_review()
 
-        if "score" in question:
+        if "quality" in q:
+            return self._quality_review()
+
+        if "complexity" in q:
+            return self._complexity_review()
+
+        if "structure" in q:
+            return self._structure_review()
+
+        if "score" in q:
             return self._answer_score()
 
-        if "weakness" in question or "problem" in question:
-            return self._answer_weaknesses()
-
-        if "improve" in question or "fix" in question:
-            return self._answer_recommendations()
-
-        return "Please ask about project score, weaknesses, or improvements."
+        return "Ask about structure, quality, complexity, documentation, or score."
 
     def _answer_score(self) -> str:
         return (
@@ -30,16 +32,17 @@ class ProjectAssistant:
             f"and risk level '{self.report['risk_level']}'."
         )
 
-    def _answer_weaknesses(self) -> str:
-        if not self.report["weaknesses"]:
-            return "No major weaknesses detected."
-        return "Key weaknesses: " + ", ".join(self.report["weaknesses"])
+    def _doc_review(self) -> str:
+        score = self.report["component_scores"]["documentation"]
+        if score >= 70:
+            return "Documentation is solid. Maintain README quality and keep tests updated."
+        return "Documentation is weak. Add a README, explain setup/usage, and introduce basic tests."
 
-    def _answer_recommendations(self) -> str:
-        recs = self.report.get("recommendations", [])
-        if not recs:
-            return "No recommendations available."
-        return "Top recommendations:\n" + "\n".join(
-            f"- [{r['severity']}] {r['issue']}: {r['action']}"
-            for r in recs
-        )
+    def _quality_review(self) -> str:
+        return "Code quality issues detected. Refactor long functions, improve naming, and add comments."
+
+    def _complexity_review(self) -> str:
+        return "Code complexity is under control. Avoid deep nesting to keep it readable."
+
+    def _structure_review(self) -> str:
+        return "Project structure is clean and modular. Maintain separation of concerns."

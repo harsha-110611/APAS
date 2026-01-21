@@ -70,7 +70,7 @@ def main():
     # 7. Insights
     insights = generate_insights(final)
 
-    # 8. AI Assistant (Day 15 demo)
+    # 8. AI Assistant — Reviewer Mode (Day 16)
     analysis_report = {
         **final,
         "recommendations": insights["recommendations"]
@@ -78,10 +78,12 @@ def main():
 
     assistant = ProjectAssistant(analysis_report)
 
-    print("🤖 Assistant Demo:")
+    print("🤖 Assistant (Reviewer Mode):")
     print(assistant.answer("What is the project score?"))
-    print(assistant.answer("What are the weaknesses?"))
-    print(assistant.answer("How can I improve this project?"))
+    print(assistant.answer("Explain documentation issues"))
+    print(assistant.answer("Explain code quality"))
+    print(assistant.answer("Explain complexity"))
+    print(assistant.answer("Explain structure"))
     print()
 
     # 9. Human-readable report
