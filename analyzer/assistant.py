@@ -110,3 +110,14 @@ class ProjectAssistant:
             "Refactor request not recognized. "
             "Specify a goal like 'split file' or 'refactor long functions'."
         )
+    def _guard(self, file_path: str, goal: str) -> str | None:
+        if not file_path:
+            return "No file specified. Please provide a valid file path."
+
+        if any(word in goal.lower() for word in ["entire project", "whole repo", "everything"]):
+            return "Refactor request too broad. Specify a single file and a focused goal."
+
+        if goal.strip() == "":
+            return "No refactor goal provided. Describe what you want to improve."
+
+        return None
