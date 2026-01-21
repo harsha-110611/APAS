@@ -70,15 +70,15 @@ def main():
     # 7. Insights
     insights = generate_insights(final)
 
-    # 8. AI Assistant — Reviewer Mode (Day 16)
+    # 8. Assistant setup
     analysis_report = {
         **final,
         "recommendations": insights["recommendations"]
     }
-
     assistant = ProjectAssistant(analysis_report)
 
-    print("🤖 Assistant (Issue Selection Mode)")
+    # 9. Issue Selection Mode (Day 17)
+    print("🤖 Assistant — Issue Selection Mode")
     print("Choose an area to review:")
     print("1. Structure")
     print("2. Code Quality")
@@ -86,7 +86,8 @@ def main():
     print("4. Documentation")
     print("5. Final Score")
 
-    choice = input("Enter number (1-5): ").strip()
+    choice = input("Enter number (1–5): ").strip()
+    print("\nAssistant Response:")
 
     if choice == "1":
         print(assistant.answer("structure"))
@@ -101,24 +102,22 @@ def main():
     else:
         print("Invalid selection.")
 
-
-    # 9. Human-readable report
+    # 10. Report (shown after assistant response)
     report_text = format_report(final, insights)
 
-    # 10. Weighted scores for visualization
+    # 11. Visualization
     weighted_scores = {
         k: final["component_scores"][k] * w
         for k, w in WEIGHTS.items()
     }
 
-    # 11. Generate project-specific chart
     chart_path = generate_score_pie(
         weighted_scores,
         output_path=f"reports/score_{project_name}.png"
     )
 
     # 12. Final output
-    print("📊 Analysis Complete")
+    print("\n📊 Full Analysis Report")
     print("--------------------------------")
     print(report_text)
     print("Chart saved at:", chart_path)
