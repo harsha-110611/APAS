@@ -85,9 +85,15 @@ def main():
     print("3. Complexity")
     print("4. Documentation")
     print("5. Final Score")
+    print("\n🔎 File-Level Review")
+    file_path = input("Enter file path to review (relative): ").strip()
+
+    print("\nAssistant File Review:")
+    print(assistant.explain_file(file_path))
 
     choice = input("Enter number (1–5): ").strip()
     print("\nAssistant Response:")
+    
 
     if choice == "1":
         print(assistant.answer("structure"))

@@ -46,3 +46,27 @@ class ProjectAssistant:
 
     def _structure_review(self) -> str:
         return "Project structure is clean and modular. Maintain separation of concerns."
+   
+    def explain_file(self, file_path: str) -> str:
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                code = f.read()
+        except Exception:
+            return "Unable to read the specified file."
+
+        lines = code.splitlines()
+        line_count = len(lines)
+
+        if line_count > 100:
+            return (
+                f"This file has {line_count} lines, which is large. "
+                "Large files reduce readability and should be split into smaller modules."
+            )
+
+        if line_count > 50 and "def " in code:
+            return (
+                "This file likely contains long functions. "
+                "Long functions make code harder to maintain and should be refactored."
+            )
+
+        return "No major structural issues detected in this file."
