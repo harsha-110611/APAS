@@ -70,48 +70,39 @@ def main():
     # 7. Insights
     insights = generate_insights(final)
 
-    # 8. Assistant setup
+    # 8. Assistant setup (Day 20)
     analysis_report = {
         **final,
         "recommendations": insights["recommendations"]
     }
     assistant = ProjectAssistant(analysis_report)
 
-    # 9. Issue Selection Mode (Day 17)
-    print("🤖 Assistant — Issue Selection Mode")
-    print("Choose an area to review:")
-    print("1. Structure")
-    print("2. Code Quality")
-    print("3. Complexity")
-    print("4. Documentation")
-    print("5. Final Score")
-    print("\n🔎 File-Level Review")
-    file_path = input("Enter file path to review (relative): ").strip()
+    # ─────────────────────────────────────────
+    # 🤖 DAY 20 — CODE-AWARE REFACTOR MODE
+    # ─────────────────────────────────────────
 
-    print("\nAssistant File Review:")
+    print("🤖 Assistant — Code Review & Refactor Mode")
+
+    # Step 1: File explanation
+    file_path = input("\nEnter file path to review (relative): ").strip()
+    print("\n📄 File Explanation:")
     print(assistant.explain_file(file_path))
 
-    choice = input("Enter number (1–5): ").strip()
-    print("\nAssistant Response:")
-    
+    # Step 2: Controlled refactor request
+    goal = input(
+        "\n🛠️ Describe refactor goal "
+        "(e.g., 'split file', 'refactor long functions'): "
+    ).strip()
 
-    if choice == "1":
-        print(assistant.answer("structure"))
-    elif choice == "2":
-        print(assistant.answer("quality"))
-    elif choice == "3":
-        print(assistant.answer("complexity"))
-    elif choice == "4":
-        print(assistant.answer("documentation"))
-    elif choice == "5":
-        print(assistant.answer("score"))
-    else:
-        print("Invalid selection.")
+    print("\n🔧 Refactor Suggestion:")
+    print(assistant.refactor_file(file_path, goal))
 
-    # 10. Report (shown after assistant response)
+    # ─────────────────────────────────────────
+    # 9. Full report (after assistant interaction)
+    # ─────────────────────────────────────────
+
     report_text = format_report(final, insights)
 
-    # 11. Visualization
     weighted_scores = {
         k: final["component_scores"][k] * w
         for k, w in WEIGHTS.items()
@@ -122,7 +113,6 @@ def main():
         output_path=f"reports/score_{project_name}.png"
     )
 
-    # 12. Final output
     print("\n📊 Full Analysis Report")
     print("--------------------------------")
     print(report_text)
