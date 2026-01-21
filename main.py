@@ -78,13 +78,29 @@ def main():
 
     assistant = ProjectAssistant(analysis_report)
 
-    print("🤖 Assistant (Reviewer Mode):")
-    print(assistant.answer("What is the project score?"))
-    print(assistant.answer("Explain documentation issues"))
-    print(assistant.answer("Explain code quality"))
-    print(assistant.answer("Explain complexity"))
-    print(assistant.answer("Explain structure"))
-    print()
+    print("🤖 Assistant (Issue Selection Mode)")
+    print("Choose an area to review:")
+    print("1. Structure")
+    print("2. Code Quality")
+    print("3. Complexity")
+    print("4. Documentation")
+    print("5. Final Score")
+
+    choice = input("Enter number (1-5): ").strip()
+
+    if choice == "1":
+        print(assistant.answer("structure"))
+    elif choice == "2":
+        print(assistant.answer("quality"))
+    elif choice == "3":
+        print(assistant.answer("complexity"))
+    elif choice == "4":
+        print(assistant.answer("documentation"))
+    elif choice == "5":
+        print(assistant.answer("score"))
+    else:
+        print("Invalid selection.")
+
 
     # 9. Human-readable report
     report_text = format_report(final, insights)
