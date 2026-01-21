@@ -57,16 +57,25 @@ class ProjectAssistant:
         lines = code.splitlines()
         line_count = len(lines)
 
+        explanations = []
+
         if line_count > 100:
-            return (
-                f"This file has {line_count} lines, which is large. "
-                "Large files reduce readability and should be split into smaller modules."
+            explanations.append(
+                f"The file has {line_count} lines. Large files reduce readability and "
+                "make it harder to understand responsibilities. This violates the "
+                "Single Responsibility Principle."
             )
 
-        if line_count > 50 and "def " in code:
-            return (
-                "This file likely contains long functions. "
-                "Long functions make code harder to maintain and should be refactored."
+        if "def " in code and line_count > 50:
+            explanations.append(
+                "The file likely contains long functions. Long functions increase "
+                "cognitive load and make debugging and testing harder."
             )
 
-        return "No major structural issues detected in this file."
+        if not explanations:
+            return (
+                "This file does not show major structural issues. "
+                "Its size and structure are within reasonable limits."
+            )
+
+        return "File Review Explanation:\n- " + "\n- ".join(explanations)
