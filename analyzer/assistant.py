@@ -79,3 +79,34 @@ class ProjectAssistant:
             )
 
         return "File Review Explanation:\n- " + "\n- ".join(explanations)
+    def refactor_file(self, file_path: str, goal: str) -> str:
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                code = f.read()
+        except Exception:
+            return "Unable to read the specified file."
+
+        goal = goal.lower()
+
+        if "split" in goal or "smaller" in goal:
+            return (
+                "Suggested Refactor:\n"
+                "- Split this file into smaller modules.\n"
+                "- Group related functions together.\n"
+                "- Move helpers into a separate utility file.\n"
+                "This reduces file size and improves maintainability."
+            )
+
+        if "long function" in goal or "refactor function" in goal:
+            return (
+                "Suggested Refactor:\n"
+                "- Break long functions into smaller functions.\n"
+                "- Each function should do one thing.\n"
+                "- Extract repeated logic into helpers.\n"
+                "This lowers cognitive load and improves testability."
+            )
+
+        return (
+            "Refactor request not recognized. "
+            "Specify a goal like 'split file' or 'refactor long functions'."
+        )
