@@ -10,6 +10,7 @@ from analyzer.scoring import compute_final_score
 from analyzer.insights import generate_insights
 from analyzer.report import format_report
 from analyzer.visualization import generate_score_pie
+from analyzer.assistant import ProjectAssistant
 
 
 WEIGHTS = {
@@ -69,22 +70,36 @@ def main():
     # 7. Insights
     insights = generate_insights(final)
 
-    # 8. Report
+    # 8. AI Assistant (Day 15 demo)
+    analysis_report = {
+        **final,
+        "recommendations": insights["recommendations"]
+    }
+
+    assistant = ProjectAssistant(analysis_report)
+
+    print("🤖 Assistant Demo:")
+    print(assistant.answer("What is the project score?"))
+    print(assistant.answer("What are the weaknesses?"))
+    print(assistant.answer("How can I improve this project?"))
+    print()
+
+    # 9. Human-readable report
     report_text = format_report(final, insights)
 
-    # 9. Weighted scores for visualization (IMPORTANT)
+    # 10. Weighted scores for visualization
     weighted_scores = {
         k: final["component_scores"][k] * w
         for k, w in WEIGHTS.items()
     }
 
-    # 10. Generate project-specific chart
+    # 11. Generate project-specific chart
     chart_path = generate_score_pie(
         weighted_scores,
         output_path=f"reports/score_{project_name}.png"
     )
 
-    # 11. Output
+    # 12. Final output
     print("📊 Analysis Complete")
     print("--------------------------------")
     print(report_text)
