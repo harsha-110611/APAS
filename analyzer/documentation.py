@@ -1,4 +1,6 @@
 # analyzer/documentation.py
+# NOTE: Metrics frozen after Day 14. Do not modify without version bump.
+
 from pathlib import Path
 
 def analyze_documentation(root_path: str) -> dict:

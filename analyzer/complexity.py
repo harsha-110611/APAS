@@ -1,4 +1,6 @@
 # analyzer/complexity.py
+# NOTE: Metrics frozen after Day 14. Do not modify without version bump.
+
 import ast
 from pathlib import Path
 

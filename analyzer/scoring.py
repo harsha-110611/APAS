@@ -1,5 +1,6 @@
 # analyzer/scoring.py
 
+# NOTE: Metrics frozen after Day 14. Do not modify without version bump.
 WEIGHTS = {
     "structure": 0.25,
     "quality": 0.30,

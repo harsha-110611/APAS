@@ -1,4 +1,5 @@
 # analyzer/structure.py
+# NOTE: Metrics frozen after Day 14. Do not modify without version bump.
 from pathlib import Path
 
 # thresholds (tweak later, not today)
