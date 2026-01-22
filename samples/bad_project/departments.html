@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Flash Card Quiz - Departments</title>
+  <style>
+    /* Reset & body */
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      height: 100vh;
+      background:black;
+      overflow:hidden;
+      font-family: Arial,sans-serif;
+      color:white;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      user-select:none;
+      position:relative;
+    }
+
+    canvas {
+      position: fixed;
+      top:0;
+      left:0;
+      width:100%;
+      height:100%;
+      z-index:-1;
+      pointer-events:none;
+    }
+
+    .dept-wrapper {
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:20px;
+      text-align:center;
+    }
+
+    .dept-buttons-grid {
+      display:grid;
+      grid-template-columns:repeat(3,200px);
+      grid-template-rows:repeat(2,50px);
+      gap:25px;
+      justify-content:center;
+      align-content:center;
+    }
+
+    .dept-btn, #backBtn {
+      position: relative;
+      padding:0.5rem 1.25rem;
+      border-radius:9999px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      font-weight:bold;
+      border:3px solid #ffffff4d;
+      background-color: rgb(0 107 179);
+      color:#fff;
+      cursor:pointer;
+      overflow:hidden;
+      font-size:15px;
+      transition: all 0.3s ease-in-out;
+    }
+
+    .dept-btn:hover, #backBtn:hover {
+      transform:scale(1.05);
+      border-color:#fff9;
+    }
+
+    .dept-btn::before, #backBtn::before {
+      content:"";
+      position:absolute;
+      width:100px;
+      height:100%;
+      background:linear-gradient(120deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.8), rgba(255,255,255,0) 70%);
+      top:0;
+      left:-100px;
+      opacity:0.6;
+      pointer-events:none;
+    }
+
+    .dept-btn:hover::before, #backBtn:hover::before {
+      animation: shine 1.5s ease-out infinite;
+    }
+
+    @keyframes shine { 0%{left:-100px;} 60%{left:100%;} to{left:100%;} }
+
+    #backBtn { margin-top:30px; background-color:#d9534f; border-color:#d43f3a; }
+  </style>
+</head>
+<body>
+  <canvas id="matrix"></canvas>
+
+  <div class="dept-wrapper">
+    <h2>Select Department</h2>
+    <div class="dept-buttons-grid">
+      <button class="dept-btn" onclick="location.href='cse.html'">CSE</button>
+      <button class="dept-btn" onclick="location.href='csm.html'">CSM</button>
+      <button class="dept-btn" onclick="location.href='civil.html'">CIVIL</button>
+      <button class="dept-btn" onclick="location.href='ece.html'">ECE</button>
+      <button class="dept-btn" onclick="location.href='eee.html'">EEE</button>
+      <button class="dept-btn" onclick="location.href='mec.html'">MECH</button>
+    </div>
+    <button id="backBtn">← Back</button>
+  </div>
+
+  <script>
+    // Binary rain background
+    const canvas = document.getElementById('matrix');
+    const ctx = canvas.getContext('2d');
+    const fontSize = 14;
+    let columns, drops;
+    let hue = 0;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      columns = Math.floor(canvas.width / fontSize);
+      drops = new Array(columns).fill(1);
+    }
+
+    function draw() {
+      ctx.fillStyle = 'rgba(0,0,0,0.1)';
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.font = fontSize + 'px monospace';
+      const gradient = ctx.createLinearGradient(0,0,canvas.width,0);
+      gradient.addColorStop(0, `hsl(${hue},100%,50%)`);
+      gradient.addColorStop(1, `hsl(${(hue+60)%360},100%,50%)`);
+      ctx.fillStyle = gradient;
+
+      for(let i=0;i<drops.length;i++){
+        ctx.fillText('01'.charAt(Math.floor(Math.random()*2)), i*fontSize, drops[i]*fontSize);
+        if(drops[i]*fontSize > canvas.height && Math.random() > 0.975) drops[i]=0;
+        drops[i]++;
+      }
+      hue = (hue+0.5)%360;
+    }
+
+    function animate(){ draw(); requestAnimationFrame(animate); }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas(); animate();
+
+    // Back button
+    document.getElementById('backBtn').addEventListener('click', ()=> {
+      window.location.href = 'index.html'; // Link back to welcome page
+    });
+  </script>
+</body>
+</html>

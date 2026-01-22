@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECE Before - Flash Card Quiz</title>
+<style>
+html, body { margin:0; padding:0; width:100%; height:100%; background:black; font-family:Arial,sans-serif; overflow:hidden; }
+canvas { display:block; }
+
+#beforeScreen { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:100; width:80%; max-width:750px; display:flex; align-items:center; justify-content:center; }
+.cinematic-panel { background: rgba(255,255,255,0.9); border-radius:50px; padding:40px 60px; text-align:center; box-shadow:0 10px 35px rgba(0,0,0,0.35); }
+.cinematic-text { font-size:18px; line-height:1.8; margin:10px 0; text-align:left; color:black; }
+
+.button { position: relative; transition: all 0.3s ease-in-out; box-shadow:0px 10px 20px rgba(0,0,0,0.2); padding:0.5rem 1.25rem; border-radius:9999px; display:inline-flex; align-items:center; justify-content:center; gap:10px; font-weight:bold; border:3px solid #ffffff4d; outline-offset:3px; overflow:hidden; font-size:15px; cursor:pointer; margin-top:25px; user-select:none; display:none; }
+#backBtn { background-color:#e74c3c; color:white; }
+#startQuizBtn { background-color:#006bb3; color:white; }
+.button:hover { transform: scale(1.05); border-color:#fff9; }
+.button::before { content:""; position:absolute; width:100px; height:100%; background-image: linear-gradient(120deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.8), rgba(255,255,255,0) 70%); top:0; left:-100px; opacity:0.6; }
+.button:hover::before { animation: shine 1.5s ease-out infinite; }
+@keyframes shine {0%{left:-100px;} 60%{left:100%;} to{left:100%;}}
+
+/* --- Roll Number Modal --- */
+#rollModal { position: fixed; top:0; left:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center; background: rgba(0,0,0,0.6); z-index:200; display:none; }
+.roll-box { background:#fff; padding:30px 40px; border-radius:20px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.4); }
+.roll-box h2 { margin-bottom:15px; color:#333; }
+.roll-box input { padding:10px; border-radius:8px; border:2px solid #ccc; width:80%; font-size:16px; margin-bottom:15px; }
+.roll-box button { background:#006bb3; color:white; border:none; padding:10px 20px; border-radius:999px; font-weight:bold; cursor:pointer; position: relative; overflow:hidden; margin-top:10px; }
+.roll-box button::before { content:""; position:absolute; width:100px; height:100%; background-image: linear-gradient(120deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.8), rgba(255,255,255,0) 70%); top:0; left:-100px; opacity:0.6; }
+.roll-box button:hover::before { animation: shine 1.5s ease-out infinite; }
+#userDetails { margin-top:15px; font-weight:bold; color:#333; }
+#proceedBtn { display:none; margin-top:10px; }
+</style>
+</head>
+<body>
+<canvas id="circuit"></canvas>
+
+<div id="beforeScreen">
+  <div class="cinematic-panel">
+    <h1 id="cinematicHeading"></h1>
+    <div id="rulesContainer"></div>
+    <div style="display:flex; gap:15px; justify-content:center; margin-top:25px;">
+      <button class="button" id="backBtn">← Back</button>
+      <button class="button" id="startQuizBtn">Start Quiz →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Roll Number Modal -->
+<div id="rollModal">
+  <div class="roll-box">
+    <h2>Enter Your Roll Number</h2>
+    <input type="text" id="rollInput" placeholder="e.g. 24F11A05XX" />
+    <br/>
+    <button id="submitRollBtn">Submit</button>
+    <button id="proceedBtn">Proceed to Quiz →</button>
+    <p id="userDetails"></p>
+  </div>
+</div>
+
+<!-- ✅ Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ========== Supabase Init ==========
+const supabaseUrl = "https://vjbdemwrqalpnjbjfsir.supabase.co";   // ⬅️ replace if needed
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqYmRlbXdycWFscG5qYmpmc2lyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyMjEzODgsImV4cCI6MjA3MTc5NzM4OH0.yigzQuQcI-MbHSYV04MZFoCp9iAYcIF2cGO2VMFgdfs";
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+// ========== Circuit Background ==========
+const canvas=document.getElementById("circuit"), ctx=canvas.getContext("2d");
+let width,height;
+function resize(){width=canvas.width=window.innerWidth;height=canvas.height=window.innerHeight;}
+window.addEventListener("resize",resize);resize();
+
+const cursor={x:width/2,y:height/2};
+window.addEventListener("mousemove",e=>{cursor.x=e.clientX;cursor.y=e.clientY;});
+
+const spacing=80,nodes=[];
+for(let x=0;x<width;x+=spacing)for(let y=0;y<height;y+=spacing)nodes.push({x,y});
+const sparks=[];
+function createSpark(x,y){sparks.push({x,y,vx:(Math.random()<0.5?spacing:-spacing),vy:(Math.random()<0.5?spacing:-spacing),life:15+Math.random()*25});}
+let hue=Math.random()*360;function nextColor(){hue+=0.6;return`hsl(${hue%360},100%,50%)`;}
+
+function draw(){
+ ctx.fillStyle="rgba(0,0,0,0.25)";ctx.fillRect(0,0,width,height);
+ const color=nextColor();ctx.strokeStyle=color;
+ nodes.forEach(n=>{if(n.x+spacing<width){ctx.beginPath();ctx.moveTo(n.x,n.y);ctx.lineTo(n.x+spacing,n.y);ctx.stroke();}
+ if(n.y+spacing<height){ctx.beginPath();ctx.moveTo(n.x,n.y);ctx.lineTo(n.x,n.y+spacing);ctx.stroke();}});
+ for(let i=sparks.length-1;i>=0;i--){const s=sparks[i];const glow=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,12);glow.addColorStop(0,color);glow.addColorStop(1,"rgba(0,0,0,0)");ctx.fillStyle=glow;ctx.beginPath();ctx.arc(s.x,s.y,6,0,Math.PI*2);ctx.fill();s.x+=Math.sign(s.vx)*4;s.y+=Math.sign(s.vy)*4;s.life--;if(s.life<=0)sparks.splice(i,1);}
+ if(Math.random()<0.3){let nearest=null,min=Infinity;nodes.forEach(n=>{let dx=n.x-cursor.x,dy=n.y-cursor.y,d=dx*dx+dy*dy;if(d<min){min=d;nearest=n;}});if(nearest)createSpark(nearest.x,nearest.y);}
+ requestAnimationFrame(draw);}
+draw();
+
+// ========== Rules Typing ==========
+const heading=document.getElementById("cinematicHeading");
+const container=document.getElementById("rulesContainer");
+const startBtn=document.getElementById("startQuizBtn");
+const backBtn=document.getElementById("backBtn");
+
+function typeWriter(el,text,speed,cb){el.innerHTML='';let i=0;function typing(){if(i<text.length){el.innerHTML+=text.charAt(i);i++;setTimeout(typing,speed);}else if(cb)cb();}typing();}
+const rules=[
+ "1. The user will have five questions.",
+ "2. For each correct answer, the player will be awarded 2 points.",
+ "3. For each incorrect answer, no points will be awarded.",
+  "4. As for now the points are stored in the local storage,we will furtherly update them in a well defined DATA-BASE.",
+  "5. For the user convenience and fun,user can play the QUIZ even they are out of attempts."
+];
+typeWriter(heading,"Before We Begin",100,function showRules(i=0){if(i<rules.length){const p=document.createElement("p");p.className="cinematic-text";container.appendChild(p);typeWriter(p,rules[i],40,()=>setTimeout(()=>showRules(i+1),400));}else{startBtn.style.display='inline-flex';backBtn.style.display='inline-flex';}});
+
+backBtn.onclick=()=>window.location.href="departments.html";
+
+// ========== Roll Modal + Supabase Integration ==========
+const rollModal=document.getElementById("rollModal");
+const rollInput=document.getElementById("rollInput");
+const submitBtn=document.getElementById("submitRollBtn");
+const proceedBtn=document.getElementById("proceedBtn");
+const userDetails=document.getElementById("userDetails");
+
+startBtn.onclick=()=>rollModal.style.display="flex";
+
+submitBtn.onclick=async()=>{
+ const roll=rollInput.value.trim().toUpperCase();
+ if(!roll){alert("Please enter your roll number.");return;}
+
+ // Check user
+ const { data:existing, error:selectError }=await supabase.from("users").select("*").eq("roll_number",roll).single();
+ if(selectError&&selectError.code!=="PGRST116"){console.error("Select error:",selectError);alert("Error checking user.");return;}
+
+ if(!existing){
+   const { error:insertError }=await supabase.from("users").insert([{roll_number:roll,points:0,attempts:5}]);
+   if(insertError){console.error("Insert error:",insertError);alert("Error creating user.");return;}
+   userDetails.textContent=`Roll Number: ${roll} | Points: 0 | Attempts: 5`;
+ } else {
+   userDetails.textContent=`Roll Number: ${roll} | Points: ${existing.points} | Attempts: ${existing.attempts}`;
+ }
+
+ proceedBtn.style.display="inline-block";
+};
+
+proceedBtn.onclick=()=>{
+ localStorage.setItem("rollNumber",rollInput.value.trim().toUpperCase());
+ window.location.href="ece-quiz.html";
+};
+
+rollInput.addEventListener("keydown",e=>{if(e.key==="Enter")submitBtn.click();});
+</script>
+</body>
+</html>
+

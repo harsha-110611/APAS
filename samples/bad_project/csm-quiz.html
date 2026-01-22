@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ML Quiz Page</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    font-family: 'Poppins', Arial, sans-serif;
+    overflow: hidden;
+    background: black;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 0;
+    display: block;
+  }
+
+  #quizContainer {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #question {
+    font-size: 26px;
+    margin-bottom: 50px;
+    text-align: center;
+    max-width: 80%;
+    min-height: 70px;
+    color: white;
+  }
+
+  #timer {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #ff4444;
+  }
+
+.options {
+      display: flex;
+      gap: 45px;
+      perspective: 1000px;
+      justify-content: center;
+      z-index: 2;
+    }
+
+  .card {
+    width: 200px;
+    height: 260px;
+    position: relative;
+    cursor: pointer;
+    transform-style: preserve-3d;
+    transition: transform 0.6s;
+  }
+
+  .card.flipped {
+    transform: rotateY(180deg);
+  }
+
+  .card .face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: bold;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+    padding: 10px;
+    text-align: center;
+  }
+
+  .front {
+    background: #ffffff;
+    border: 2px solid #0077ff;
+    color: #0077ff;
+  }
+
+  .back {
+    background: #0077ff;
+    color: white;
+    transform: rotateY(180deg);
+  }
+
+  .fall {
+    animation: fallDown 0.8s forwards;
+  }
+
+  @keyframes fallDown {
+    to { transform: translateY(450px) rotate(25deg); opacity: 0; }
+  }
+
+  #score {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 20px;
+    font-weight: bold;
+    color: white;
+  }
+
+  #playAgainContainer {
+    display: none;
+    z-index: 2;
+    text-align: center;
+    margin-top: 30px;
+  }
+
+  #playAgainBtn {
+    position: relative;
+    padding: 0.5rem 1.25rem;
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-weight: bold;
+    border: 3px solid #ffffff4d;
+    background-color: rgb(0 107 179);
+    color: #fff;
+    cursor: pointer;
+    overflow: hidden;
+    font-size: 15px;
+    transition: all 0.3s ease-in-out;
+  }
+
+  #playAgainBtn:hover {
+    transform: scale(1.05);
+    border-color: #fff9;
+  }
+
+  #playAgainBtn::before {
+    content: "";
+    position: absolute;
+    width: 100px;
+    height: 100%;
+    background: linear-gradient(120deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.8), rgba(255,255,255,0) 70%);
+    top: 0;
+    left: -100px;
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  #playAgainBtn:hover::before {
+    animation: shine 1.5s ease-out infinite;
+  }
+
+  @keyframes shine {
+    0% { left: -100px; }
+    100% { left: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="csm"></canvas>
+
+<div id="quizContainer">
+  <div id="timer">15</div>
+  <div id="question">Loading Question...</div>
+  <div class="options" id="options"></div>
+  <div id="score">Score: 0</div>
+  <div id="playAgainContainer">
+    <button id="playAgainBtn" onclick="goToDepartments()">Play Again</button>
+  </div>
+</div>
+
+<script>
+  // ===== Neural Network Background =====
+  (() => {
+    const canvas = document.getElementById('csm');
+    const ctx = canvas.getContext('2d');
+    let width, height, nodes = [], hue = 200;
+
+    function resizeCanvas() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      nodes = [];
+      for(let i=0; i<80; i++){
+        nodes.push({x: Math.random()*width, y: Math.random()*height, vx:(Math.random()-0.5)*0.7, vy:(Math.random()-0.5)*0.7, radius:2+Math.random()*2});
+      }
+    }
+
+    function draw() {
+      ctx.fillStyle = "rgba(0,0,0,0.15)";
+      ctx.fillRect(0,0,width,height);
+      hue = (hue+1.2)%360;
+      const color = `hsl(${hue},100%,60%)`;
+      for(let i=0;i<nodes.length;i++){
+        for(let j=i+1;j<nodes.length;j++){
+          const dx = nodes[i].x - nodes[j].x;
+          const dy = nodes[i].y - nodes[j].y;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          if(dist<120){
+            ctx.strokeStyle = color;
+            ctx.globalAlpha = 1-dist/120;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(nodes[i].x,nodes[i].y);
+            ctx.lineTo(nodes[j].x,nodes[j].y);
+            ctx.stroke();
+          }
+        }
+      }
+      ctx.globalAlpha = 1;
+      nodes.forEach(node=>{
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(node.x,node.y,node.radius,0,Math.PI*2);
+        ctx.fill();
+        node.x+=node.vx;
+        node.y+=node.vy;
+        if(node.x<0||node.x>width) node.vx*=-1;
+        if(node.y<0||node.y>height) node.vy*=-1;
+      });
+    }
+
+    function animate() { draw(); requestAnimationFrame(animate); }
+    window.addEventListener('resize',resizeCanvas);
+    resizeCanvas(); animate();
+  })();
+
+  // ===== Quiz Logic =====
+  const easyQuestions = [
+  { text: "What does 'ML' stand for?", options: ["Machine Learning","Meta Learning","Mathematical Logic","Model Layer"], correct: 0 },
+  { text: "Which language is most commonly used for ML?", options: ["Python","Java","C++","Ruby"], correct: 0 },
+  { text: "Which library is used for numerical computing in Python?", options: ["NumPy","TensorFlow","Scikit-learn","Keras"], correct: 0 },
+  { text: "Which type of ML uses labeled data?", options: ["Supervised Learning","Unsupervised Learning","Reinforcement Learning","Deep Learning"], correct: 0 },
+  { text: "Which type of ML finds patterns without labels?", options: ["Unsupervised Learning","Supervised Learning","Reinforcement Learning","Deep Learning"], correct: 0 },
+  { text: "Which library is mainly used for deep learning in Python?", options: ["TensorFlow","Pandas","Matplotlib","Seaborn"], correct: 0 },
+  { text: "What does 'AI' stand for?", options: ["Artificial Intelligence","Automated Integration","Applied Informatics","Advanced Interaction"], correct: 0 },
+  { text: "Which ML algorithm is used for classification and regression?", options: ["Decision Tree","K-Means","Apriori","DBSCAN"], correct: 0 },
+  { text: "Which ML model is inspired by the human brain?", options: ["Neural Network","Decision Tree","Random Forest","SVM"], correct: 0 },
+  { text: "Which of the following is NOT an ML library?", options: ["Photoshop","Scikit-learn","TensorFlow","PyTorch"], correct: 0 },
+  { text: "Which metric is used to evaluate classification models?", options: ["Accuracy","RMSE","MAE","MSE"], correct: 0 },
+  { text: "Which algorithm is commonly used for clustering?", options: ["K-Means","Naive Bayes","Linear Regression","Logistic Regression"], correct: 0 },
+  { text: "Which ML type uses rewards and punishments?", options: ["Reinforcement Learning","Supervised Learning","Unsupervised Learning","Deep Learning"], correct: 0 },
+  { text: "What is the process of splitting data into train and test sets called?", options: ["Data Splitting","Data Cleaning","Feature Extraction","Normalization"], correct: 0 },
+  { text: "Which of the following is a supervised ML task?", options: ["Spam Email Detection","Customer Segmentation","Anomaly Detection","Clustering"], correct: 0 }
+];
+
+const mediumQuestions = [
+  { text: "Which algorithm reduces dimensionality?", options: ["PCA","Decision Tree","KNN","Random Forest"], correct: 0 },
+  { text: "Which ML algorithm is based on ensemble of trees?", options: ["Random Forest","Linear Regression","K-Means","SVM"], correct: 0 },
+  { text: "Which loss function is used for classification?", options: ["Cross-Entropy Loss","Mean Squared Error","R-squared","Hinge Loss"], correct: 0 },
+  { text: "Which technique prevents overfitting?", options: ["Regularization","Normalization","PCA","Scaling"], correct: 0 },
+  { text: "Which kernel is commonly used in SVM?", options: ["RBF","Sigmoid","Step","Exponential"], correct: 0 },
+  { text: "Which optimizer is widely used in deep learning?", options: ["Adam","Gradient Descent","Momentum","Adagrad"], correct: 0 },
+  { text: "What does ROC curve represent?", options: ["True Positive vs False Positive","Precision vs Recall","Accuracy vs Loss","F1 vs Support"], correct: 0 },
+  { text: "Which ML model is prone to overfitting if not pruned?", options: ["Decision Tree","Random Forest","Naive Bayes","KNN"], correct: 0 },
+  { text: "Which metric is better for imbalanced datasets?", options: ["F1-score","Accuracy","MSE","R-squared"], correct: 0 },
+  { text: "Which clustering algorithm can handle non-spherical shapes?", options: ["DBSCAN","K-Means","Hierarchical","PCA"], correct: 0 }
+];
+
+const hardQuestions = [
+  { text: "Which method reduces variance in ensemble models?", options: ["Bagging","Boosting","Dropout","Regularization"], correct: 0 },
+  { text: "Which neural network type is used for sequential data?", options: ["RNN","CNN","GAN","MLP"], correct: 0 },
+  { text: "Which technique is used in deep learning to prevent vanishing gradients?", options: ["ReLU Activation","Sigmoid Activation","Max Pooling","Dropout"], correct: 0 },
+  { text: "Which ML concept is related to the 'Bias-Variance Tradeoff'?", options: ["Model Generalization","Gradient Explosion","Epoch Tuning","Batch Normalization"], correct: 0 },
+  { text: "Which architecture is the basis of Transformers?", options: ["Self-Attention","Convolution","Recurrent Units","Markov Chains"], correct: 0 }
+];
+
+
+  function pickRandom(arr, n) {
+      const copy = [...arr];
+      const result = [];
+      for (let i = 0; i < n && copy.length > 0; i++) {
+        const index = Math.floor(Math.random() * copy.length);
+        result.push(copy.splice(index, 1)[0]);
+      }
+      return result;
+    }
+
+    const questions = [
+      ...pickRandom(easyQuestions, 2),
+      ...pickRandom(mediumQuestions, 2),
+      ...pickRandom(hardQuestions, 1)
+    ];
+
+    let currentIndex = 0;
+    let score = 0;
+    let attempts = 0;
+    let timer;
+    let timeLeft = 15;
+    let answered = false;
+
+    const questionEl = document.getElementById("question");
+    const optionsEl = document.getElementById("options");
+    const scoreEl = document.getElementById("score");
+    const timerEl = document.getElementById("timer");
+    const playAgainContainer = document.getElementById("playAgainContainer");
+const prevScore = localStorage.getItem("civilQuizScore");
+const prevAttempts = localStorage.getItem("civilQuizAttempts");
+
+if (prevScore && prevAttempts) {
+  scoreEl.textContent = `Last Score: ${prevScore} | Attempts: ${prevAttempts}`;
+}
+function shuffleArray(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+    // ===== Timer =====
+    function startTimer() {
+      clearInterval(timer);
+      timeLeft = 15;
+      timerEl.textContent = timeLeft;
+      timer = setInterval(() => {
+        timeLeft--;
+        timerEl.textContent = timeLeft;
+       if (timeLeft <= 0) {
+  clearInterval(timer);
+
+  if (!answered) {
+    answered = true;
+    attempts++;
+    scoreEl.textContent = `Score: ${score} | Attempts: ${attempts}`;
+    showCorrectAnswer();
+    setTimeout(nextQuestion, 1500);
+  }
+}
+      }, 1000);
+    }
+function shuffleOptions(question) {
+  const optionsWithIndex = question.options.map((opt, i) => ({
+    text: opt,
+    isCorrect: i === question.correct
+  }));
+
+  // Fisher–Yates shuffle
+  for (let i = optionsWithIndex.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [optionsWithIndex[i], optionsWithIndex[j]] =
+    [optionsWithIndex[j], optionsWithIndex[i]];
+  }
+
+  question.options = optionsWithIndex.map(o => o.text);
+  question.correct = optionsWithIndex.findIndex(o => o.isCorrect);
+}
+
+    // ===== Load Question =====
+    function loadQuestion() {
+      answered = false;
+      const q = questions[currentIndex];
+      shuffleOptions(q);
+      optionsEl.innerHTML = "";
+      questionEl.textContent = q.text;
+      q.options.forEach((opt, i) => {
+        const card = document.createElement("div");
+        card.className = "card";
+        const front = document.createElement("div");
+        front.className = "face front";
+        front.textContent = opt;
+        const back = document.createElement("div");
+        back.className = "face back";
+        back.textContent = (i === q.correct) ? "Correct!" : "Wrong!";
+        card.appendChild(front);
+        card.appendChild(back);
+        card.addEventListener("click", () => selectOption(card, i));
+        optionsEl.appendChild(card);
+      });
+      startTimer();
+    }
+function showCorrectAnswer() {
+  const q = questions[currentIndex];
+  const cards = document.querySelectorAll(".card");
+
+  cards.forEach((card, i) => {
+    card.classList.add("flipped");
+    const back = card.querySelector(".back");
+
+    if (i === q.correct) {
+      back.style.background = "green";
+      back.textContent = "Correct!";
+    } else {
+      back.style.background = "red";
+      back.textContent = "Wrong!";
+    }
+  });
+}
+
+    // ===== Select Option =====
+function selectOption(selectedCard, index) {
+  if (answered) return;
+  answered = true;
+
+  clearInterval(timer);
+  attempts++;
+
+  const correctIndex = questions[currentIndex].correct;
+  if (index === correctIndex) score += 2;
+
+  scoreEl.textContent = `Score: ${score} | Attempts: ${attempts}`;
+
+  showCorrectAnswer();
+  setTimeout(nextQuestion, 1500);
+}
+
+
+    // ===== Next Question =====
+   function nextQuestion() {
+  currentIndex++;
+
+  if (currentIndex < questions.length) {
+    loadQuestion();
+  } else {
+    questionEl.textContent =
+      `Quiz Finished!
+Final Score: ${score}
+Attempts: ${attempts}`;
+
+    optionsEl.innerHTML = "";
+    timerEl.textContent = "";
+
+    // 👇 SAVE DATA
+    localStorage.setItem("civilQuizScore", score);
+    localStorage.setItem("civilQuizAttempts", attempts);
+
+    playAgainContainer.style.display = "block";
+  }
+}
+
+    // ===== Go to Departments =====
+    function goToDepartments() {
+      window.location.href = "departments.html";
+    }
+
+    // ===== Start Quiz =====
+    loadQuestion();
+  </script>
+</body>
+</html>

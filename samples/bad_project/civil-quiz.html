@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Civil Dept Quiz</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { box-sizing: border-box; margin:0; padding:0; }
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #0c0c0c;
+      font-family: 'Poppins', Arial, sans-serif;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    .icon {
+      position: absolute;
+      top:-50px;
+      font-size: 24px;
+      opacity: 0.7;
+      animation: fall 6s linear infinite;
+      z-index: 1;
+      user-select: none;
+    }
+    @keyframes fall {
+      from { transform: translateY(-50px) rotate(0deg); }
+      to { transform: translateY(110vh) rotate(360deg); }
+    }
+
+    #question {
+      font-size: 26px;
+      margin-bottom: 50px;
+      text-align: center;
+      max-width: 80%;
+      min-height: 70px;
+      z-index: 2;
+    }
+
+    #timer {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #ff4444;
+      z-index: 2;
+    }
+
+    .options {
+      display: flex;
+      gap: 30px;
+      perspective: 1000px;
+      justify-content: center;
+      z-index: 2;
+    }
+
+    .card {
+      width: 200px;
+      height: 260px;
+      position: relative;
+      cursor: pointer;
+      transform-style: preserve-3d;
+      transition: transform 0.6s;
+      z-index: 2;
+      background:#000;
+      color: #fff;
+    }
+    .card.flipped { transform: rotateY(180deg); }
+
+    .card .face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: bold;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+      padding: 10px;
+      text-align: center;
+    }
+    .front {
+      background: #ffffff;
+      border: 2px solid #0077ff;
+      color: #0077ff;
+    }
+    .back {
+      background: #0077ff;
+      color: white;
+      transform: rotateY(180deg);
+    }
+
+    .fall {
+      animation: fallDown 0.8s forwards;
+    }
+    @keyframes fallDown {
+      to {
+        transform: translateY(450px) rotate(25deg);
+        opacity: 0;
+      }
+    }
+
+    #score {
+      position: fixed;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 20px;
+      font-weight: bold;
+      color: #fff;
+      z-index: 2;
+    }
+
+    #playAgainBtn {
+      position: relative;
+      padding:0.5rem 1.25rem;
+      border-radius:9999px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      font-weight:bold;
+      border:3px solid #ffffff4d;
+      background-color: rgb(0 107 179);
+      color:#fff;
+      cursor:pointer;
+      overflow:hidden;
+      font-size:15px;
+      transition: all 0.3s ease-in-out;
+      margin-top: 30px;
+    }
+    #playAgainBtn:hover {
+      transform:scale(1.05);
+      border-color:#fff9;
+    }
+    #playAgainBtn::before {
+      content:"";
+      position:absolute;
+      width:100px;
+      height:100%;
+      background:linear-gradient(120deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.8), rgba(255,255,255,0) 70%);
+      top:0;
+      left:-100px;
+      opacity:0.6;
+      pointer-events:none;
+    }
+    #playAgainBtn:hover::before {
+      animation: shine 1.5s ease-out infinite;
+    }
+    @keyframes shine {
+      0% { left:-100px; }
+      100% { left:100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="timer">15</div>
+  <div id="question">Loading Question...</div>
+  <div class="options" id="options"></div>
+  <div id="score">Score: 0 | Attempts: 0</div>
+  <div id="playAgainContainer" style="display:none; z-index:2;">
+    <button id="playAgainBtn" onclick="goToDepartments()">Play Again</button>
+  </div>
+
+  <script>
+    // ===== Background Civil Icons =====
+    (function makeCivilBackground() {
+      const icons = ["⚒️", "⚙️", "📐", "🏗️", "🧱"];
+      for (let i = 0; i < 36; i++) {
+        const span = document.createElement("span");
+        span.className = "icon";
+        span.textContent = icons[Math.floor(Math.random() * icons.length)];
+        span.style.left = Math.random() * 100 + "vw";
+        span.style.animationDuration = (3 + Math.random() * 3) + "s";
+        span.style.animationDelay = (Math.random() * 3) + "s";
+        document.body.appendChild(span);
+      }
+    })();
+
+    // ===== Questions =====
+const easyQuestions = [
+  { text: "What does CE stand for?", options: ["Civil Engineering","Computer Engineering","Chemical Engineering","Construction Engineering"], correct: 0 },
+  { text: "Which material is used for making concrete?", options: ["Cement, Sand, Gravel","Steel, Copper, Aluminum","Plastic, Rubber, Glass","Wood, Clay, Stone"], correct: 0 },
+  { text: "Which instrument measures angles in surveying?", options: ["Theodolite","Voltmeter","Micrometer","Tachometer"], correct: 0 },
+  { text: "Which component transfers loads from structure to ground?", options: ["Foundation","Beam","Column","Slab"], correct: 0 },
+  { text: "Which soil type is strong and stable for construction?", options: ["Rocky Soil","Clay","Peat","Sandy Soil"], correct: 0 },
+  { text: "Which tool measures distances on site?", options: ["Tape Measure","Compass","Protractor","Spirit Level"], correct: 0 },
+  { text: "Which component resists vertical loads in a building?", options: ["Column","Slab","Beam","Roof"], correct: 0 },
+  { text: "Which material is commonly used for reinforcement in concrete?", options: ["Steel","Wood","Plastic","Glass"], correct: 0 },
+  { text: "Which type of roof helps in rainwater drainage?", options: ["Sloped","Flat","Domed","Shed"], correct: 0 },
+  { text: "Which instrument checks level surfaces?", options: ["Spirit Level","Tape Measure","Hammer","Chisel"], correct: 0 },
+  { text: "Which component mixes cement, sand, and water?", options: ["Concrete Mixer","Trowel","Hammer","Drill"], correct: 0 },
+  { text: "Which building block is the basic unit of construction?", options: ["Brick","Beam","Slab","Column"], correct: 0 },
+  { text: "Which is a natural building material?", options: ["Sand","Cement","Steel","Plastic"], correct: 0 },
+  { text: "Which instrument measures vertical height differences?", options: ["Leveling Instrument","Voltmeter","Compass","Protractor"], correct: 0 },
+  { text: "Which system is used to protect against water seepage?", options: ["Waterproofing","Drainage","Insulation","Ventilation"], correct: 0 }
+];
+
+const mediumQuestions = [
+  { text: "Which type of beam projects out without support at one end?", options: ["Cantilever Beam","Simply Supported Beam","Fixed Beam","Continuous Beam"], correct: 0 },
+  { text: "Which test determines soil bearing capacity?", options: ["Plate Load Test","Moisture Test","pH Test","Compression Test"], correct: 0 },
+  { text: "Which structural member is used to support roofs in triangular framework?", options: ["Truss","Column","Beam","Slab"], correct: 0 },
+  { text: "Which method strengthens weak soil?", options: ["Compaction","Painting","Hammering","Polishing"], correct: 0 },
+  { text: "Which load is temporary, caused by people or furniture?", options: ["Live Load","Dead Load","Wind Load","Seismic Load"], correct: 0 },
+  { text: "Which material is used for waterproofing?", options: ["Bitumen","Sand","Steel","Cement"], correct: 0 },
+  { text: "Which type of foundation is shallow?", options: ["Shallow Foundation","Deep Foundation","Pile Foundation","Raft Foundation"], correct: 0 },
+  { text: "Which modulus measures stiffness of material?", options: ["Modulus of Elasticity","Bulk Modulus","Shear Modulus","Poisson's Ratio"], correct: 0 },
+  { text: "Which device reduces vibrations in buildings?", options: ["Damper","Beam","Column","Slab"], correct: 0 },
+  { text: "Which analysis calculates forces in complex structures?", options: ["Structural Analysis","Surveying","Leveling","Compaction"], correct: 0 }
+];
+
+const hardQuestions = [
+  { text: "Which factors affect load-bearing capacity of soil?", options: ["Cohesion and friction","Color","Moisture only","Temperature"], correct: 0 },
+  { text: "What is the advantage of pre-stressed concrete?", options: ["Better tensile strength","Cheaper material","Faster construction","Lightweight"], correct: 0 },
+  { text: "Which method analyzes stresses in complex structures?", options: ["Finite Element Analysis","Manual calculation","Graph plotting","Surveying"], correct: 0 },
+  { text: "Which load is due to earthquake?", options: ["Seismic Load","Dead Load","Live Load","Wind Load"], correct: 0 },
+  { text: "Which test evaluates concrete strength?", options: ["Compressive Strength Test","Tensile Test","Bending Test","Shear Test"], correct: 0 }
+];
+
+
+    function pickRandom(arr, n) {
+      const copy = [...arr];
+      const result = [];
+      for (let i = 0; i < n && copy.length > 0; i++) {
+        const index = Math.floor(Math.random() * copy.length);
+        result.push(copy.splice(index, 1)[0]);
+      }
+      return result;
+    }
+
+    const questions = [
+      ...pickRandom(easyQuestions, 2),
+      ...pickRandom(mediumQuestions, 2),
+      ...pickRandom(hardQuestions, 1)
+    ];
+
+    let currentIndex = 0;
+    let score = 0;
+    let attempts = 0;
+    let timer;
+    let timeLeft = 15;
+    let answered = false;
+
+    const questionEl = document.getElementById("question");
+    const optionsEl = document.getElementById("options");
+    const scoreEl = document.getElementById("score");
+    const timerEl = document.getElementById("timer");
+    const playAgainContainer = document.getElementById("playAgainContainer");
+const prevScore = localStorage.getItem("civilQuizScore");
+const prevAttempts = localStorage.getItem("civilQuizAttempts");
+
+if (prevScore && prevAttempts) {
+  scoreEl.textContent = `Last Score: ${prevScore} | Attempts: ${prevAttempts}`;
+}
+function shuffleArray(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+    // ===== Timer =====
+    function startTimer() {
+      clearInterval(timer);
+      timeLeft = 15;
+      timerEl.textContent = timeLeft;
+      timer = setInterval(() => {
+        timeLeft--;
+        timerEl.textContent = timeLeft;
+       if (timeLeft <= 0) {
+  clearInterval(timer);
+
+  if (!answered) {
+    answered = true;
+    attempts++;
+    scoreEl.textContent = `Score: ${score} | Attempts: ${attempts}`;
+    showCorrectAnswer();
+    setTimeout(nextQuestion, 1500);
+  }
+}
+      }, 1000);
+    }
+function shuffleOptions(question) {
+  const optionsWithIndex = question.options.map((opt, i) => ({
+    text: opt,
+    isCorrect: i === question.correct
+  }));
+
+  // Fisher–Yates shuffle
+  for (let i = optionsWithIndex.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [optionsWithIndex[i], optionsWithIndex[j]] =
+    [optionsWithIndex[j], optionsWithIndex[i]];
+  }
+
+  question.options = optionsWithIndex.map(o => o.text);
+  question.correct = optionsWithIndex.findIndex(o => o.isCorrect);
+}
+
+    // ===== Load Question =====
+    function loadQuestion() {
+      answered = false;
+      const q = questions[currentIndex];
+      shuffleOptions(q);
+      optionsEl.innerHTML = "";
+      questionEl.textContent = q.text;
+      q.options.forEach((opt, i) => {
+        const card = document.createElement("div");
+        card.className = "card";
+        const front = document.createElement("div");
+        front.className = "face front";
+        front.textContent = opt;
+        const back = document.createElement("div");
+        back.className = "face back";
+        back.textContent = (i === q.correct) ? "Correct!" : "Wrong!";
+        card.appendChild(front);
+        card.appendChild(back);
+        card.addEventListener("click", () => selectOption(card, i));
+        optionsEl.appendChild(card);
+      });
+      startTimer();
+    }
+function showCorrectAnswer() {
+  const q = questions[currentIndex];
+  const cards = document.querySelectorAll(".card");
+
+  cards.forEach((card, i) => {
+    card.classList.add("flipped");
+    const back = card.querySelector(".back");
+
+    if (i === q.correct) {
+      back.style.background = "green";
+      back.textContent = "Correct!";
+    } else {
+      back.style.background = "red";
+      back.textContent = "Wrong!";
+    }
+  });
+}
+
+    // ===== Select Option =====
+function selectOption(selectedCard, index) {
+  if (answered) return;
+  answered = true;
+
+  clearInterval(timer);
+  attempts++;
+
+  const correctIndex = questions[currentIndex].correct;
+  if (index === correctIndex) score += 2;
+
+  scoreEl.textContent = `Score: ${score} | Attempts: ${attempts}`;
+
+  showCorrectAnswer();
+  setTimeout(nextQuestion, 1500);
+}
+
+
+    // ===== Next Question =====
+   function nextQuestion() {
+  currentIndex++;
+
+  if (currentIndex < questions.length) {
+    loadQuestion();
+  } else {
+    questionEl.textContent =
+      `Quiz Finished!
+Final Score: ${score}
+Attempts: ${attempts}`;
+
+    optionsEl.innerHTML = "";
+    timerEl.textContent = "";
+
+    // 👇 SAVE DATA
+    localStorage.setItem("civilQuizScore", score);
+    localStorage.setItem("civilQuizAttempts", attempts);
+
+    playAgainContainer.style.display = "block";
+  }
+}
+
+    // ===== Go to Departments =====
+    function goToDepartments() {
+      window.location.href = "departments.html";
+    }
+
+    // ===== Start Quiz =====
+    loadQuestion();
+  </script>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Flash Card Quiz - Welcome</title>
+  <style>
+    /* Reset & body */
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      height: 100vh;
+      background:black;
+      overflow:hidden;
+      font-family: Arial,sans-serif;
+      color:white;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      user-select:none;
+      position:relative;
+    }
+
+    canvas {
+      position: fixed;
+      top:0;
+      left:0;
+      width:100%;
+      height:100%;
+      z-index:-1;
+      pointer-events:none;
+    }
+
+    h1 {
+      font-weight: bold;
+      letter-spacing: 2px;
+      text-shadow: 2px 2px 5px rgb(8, 0, 8), 0 0 15px #0754ab;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    #welcomeButtons {
+      display:flex;
+      gap:20px;
+      justify-content:center;
+      margin-top:20px;
+    }
+
+    .button {
+      position: relative;
+      padding:0.5rem 1.25rem;
+      border-radius:9999px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      font-weight:bold;
+      border:3px solid #ffffff4d;
+      background-color: rgb(0 107 179);
+      color:#fff;
+      cursor:pointer;
+      overflow:hidden;
+      font-size:15px;
+      transition: all 0.3s ease-in-out;
+    }
+
+    .button:hover {
+      transform: scale(1.05);
+      border-color:#fff9;
+    }
+
+    .button::before {
+      content:"";
+      position:absolute;
+      width:100px;
+      height:100%;
+      background:linear-gradient(120deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.8), rgba(255,255,255,0) 70%);
+      top:0;
+      left:-100px;
+      opacity:0.6;
+      pointer-events:none;
+    }
+
+    .button:hover::before {
+      animation: shine 1.5s ease-out infinite;
+    }
+
+    @keyframes shine { 0%{left:-100px;} 60%{left:100%;} to{left:100%;} }
+  </style>
+</head>
+<body>
+  <canvas id="matrix"></canvas>
+
+  <div style="text-align:center;">
+    <h1>Welcome → Flash Card Quiz</h1>
+    <div id="welcomeButtons">
+      <button class="button" id="playQuizBtn">Play Quiz</button>
+      <button class="button" id="createQuizBtn" disabled>Create Quiz</button>
+    </div>
+  </div>
+
+  <script>
+    // Binary rain background
+    const canvas = document.getElementById('matrix');
+    const ctx = canvas.getContext('2d');
+    const fontSize = 14;
+    let columns, drops;
+    let hue = 0;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      columns = Math.floor(canvas.width / fontSize);
+      drops = new Array(columns).fill(1);
+    }
+
+    function draw() {
+      ctx.fillStyle = 'rgba(0,0,0,0.1)';
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.font = fontSize + 'px monospace';
+      const gradient = ctx.createLinearGradient(0,0,canvas.width,0);
+      gradient.addColorStop(0, `hsl(${hue},100%,50%)`);
+      gradient.addColorStop(1, `hsl(${(hue+60)%360},100%,50%)`);
+      ctx.fillStyle = gradient;
+
+      for(let i=0;i<drops.length;i++){
+        ctx.fillText('01'.charAt(Math.floor(Math.random()*2)), i*fontSize, drops[i]*fontSize);
+        if(drops[i]*fontSize > canvas.height && Math.random() > 0.975) drops[i]=0;
+        drops[i]++;
+      }
+      hue = (hue+0.5)%360;
+    }
+
+    function animate(){ draw(); requestAnimationFrame(animate); }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas(); animate();
+
+    // Link to department page
+    const playQuizBtn = document.getElementById('playQuizBtn');
+    playQuizBtn.addEventListener('click', () => {
+      window.location.href = 'departments.html'; // Make sure this file exists
+    });
+  </script>
+</body>
+</html>

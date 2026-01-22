@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FlashCard Quiz - Interactive Learning Platform</title>
+<style>
+/* RESET */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* BODY BACKGROUND */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow-x: hidden;
+    background: url('background.jpg') no-repeat center center/cover;
+    position: relative;
+    color: white;
+    min-height: 100vh;
+}
+
+/* Dark overlay */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.55);
+    z-index: -1;
+}
+
+/* NAVBAR */
+.navbar {
+    position: fixed; 
+    top: 0; 
+    width: 100%; 
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(10px); 
+    z-index: 1000; 
+    padding: 15px 0; 
+    box-shadow: 0 2px 20px rgba(0,0,0,0.5);
+    display: flex; 
+    justify-content: center;
+}
+.navbar.scrolled { padding: 10px 0; }
+.nav-links { list-style: none; display: flex; gap: 30px; }
+.nav-links a { 
+    text-decoration: none; 
+    color: white; 
+    font-weight: 500; 
+    padding: 8px 16px; 
+    border-radius: 20px; 
+    transition: all 0.3s ease; 
+}
+.nav-links a:hover, .nav-links a.active { 
+    background: linear-gradient(135deg, #667eea, #764ba2); 
+    color: white; 
+}
+
+/* PAGE WRAPPER */
+.page {
+    position: absolute; 
+    width: 100%; 
+    height: 100%; 
+    top: 0; left: 0; 
+    display: none; 
+    overflow-y: auto; 
+    background: transparent;
+    color: white;
+}
+.page.active { display: block; }
+
+/* TRANSITIONS */
+.page.fade-in { animation: fadeIn 0.8s forwards; }
+.page.slide-left { animation: slideLeft 0.8s forwards; }
+.page.slide-right { animation: slideRight 0.8s forwards; }
+.page.scale-up { animation: scaleUp 0.8s forwards; }
+.page.rotate { animation: rotateIn 0.8s forwards; }
+
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+@keyframes slideLeft { from { transform: translateX(100%); } to { transform: translateX(0); } }
+@keyframes slideRight { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+@keyframes scaleUp { from { transform: scale(0.8); opacity:0; } to { transform: scale(1); opacity:1; } }
+@keyframes rotateIn { from { transform: rotateY(90deg); opacity:0; } to { transform: rotateY(0deg); opacity:1; } }
+
+/* HERO */
+.hero-section {
+    height: 100vh; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    text-align: center; 
+}
+.hero-title { font-size: 4rem; margin-bottom: 20px; }
+.hero-subtitle { font-size: 2rem; margin-bottom: 20px; }
+.hero-description { font-size: 1.3rem; margin-bottom: 30px; }
+.cta-button { 
+    padding:15px 40px; 
+    border-radius:50px; 
+    text-decoration:none; 
+    font-weight:600; 
+    font-size:1.1rem; 
+    transition: all 0.3s; 
+    display: inline-block; 
+}
+.cta-primary { 
+    background: linear-gradient(45deg,#ff6b6b,#ee5a52); 
+    color:white; 
+}
+.cta-secondary { 
+    background: transparent; 
+    color:white; 
+    border:2px solid rgba(255,255,255,0.3); 
+}
+.cta-button:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 20px rgba(0,0,0,0.4);
+}
+
+/* SECTIONS */
+section { 
+    padding: 120px 20px; 
+    max-width:1200px; 
+    margin:0 auto; 
+    text-align:center; 
+}
+.section-title { 
+    font-size:3rem; 
+    background: linear-gradient(135deg,#667eea,#764ba2); 
+    -webkit-background-clip:text; 
+    -webkit-text-fill-color:transparent; 
+    margin-bottom:20px; 
+}
+.section-subtitle { font-size:1.3rem; margin-bottom:40px; color:#ddd; }
+.features-grid, .tech-grid, .benefits-grid { display:grid; gap:30px; }
+.features-grid { grid-template-columns: repeat(auto-fit,minmax(250px,1fr)); }
+.feature-card, .tech-card, .benefits-category { 
+    padding:30px; 
+    border-radius:20px; 
+    background: rgba(255,255,255,0.1); 
+    color:white; 
+    transition:all 0.3s ease; 
+    backdrop-filter: blur(5px);
+}
+.feature-card:hover, .tech-card:hover { transform: translateY(-10px); }
+
+/* OVERVIEW PAGE */
+.overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+    margin-top: 40px;
+}
+.overview-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    padding: 25px;
+    border-radius: 20px;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+.overview-card h3 {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+}
+.overview-card p {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #eee;
+}
+.overview-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+}
+
+/* RESPONSIVE */
+@media(max-width:768px){ .features-grid, .tech-grid, .benefits-grid, .overview-grid { grid-template-columns:1fr; } }
+
+/* NAVBAR PROGRESS */
+#progressBar { 
+    position: fixed; 
+    top:0; left:0; 
+    width:0%; 
+    height:4px; 
+    background: linear-gradient(90deg,#667eea,#764ba2); 
+    z-index:10000; 
+    transition: width 0.1s ease; 
+}
+</style>
+</head>
+<body>
+
+<div id="progressBar"></div>
+
+<!-- NAVBAR -->
+<nav class="navbar" id="navbar">
+    <ul class="nav-links">
+        <li><a href="#home" class="active">Home</a></li>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#tech">Technology</a></li>
+        <li><a href="#benefits">Benefits</a></li>
+        <li><a href="#credits">Credits</a></li>
+    </ul>
+</nav>
+
+<!-- PAGES -->
+
+<!-- HOME -->
+<div class="page" id="home">
+    <div class="hero-section">
+        <div>
+            <h1 class="hero-title">FlashCard Quiz</h1>
+            <p class="hero-subtitle">Interactive Learning Platform</p>
+            <p class="hero-description">Transform your learning experience with dynamic flashcards and engaging quizzes.</p>
+            <div class="cta-buttons">
+                <a href="https://harsha110911.github.io/FlashCardQuiz/" target="_blank" class="cta-button cta-primary">🚀 Launch Demo</a>
+                <a href="https://github.com/Harsha110911/FlashCardQuiz" target="_blank" class="cta-button cta-secondary">📱 View Source</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- OVERVIEW -->
+<div class="page" id="overview">
+    <section>
+        <h2 class="section-title">Project Overview</h2>
+        <p class="section-subtitle">A comprehensive look at FlashCard Quiz</p>
+
+        <div class="overview-grid">
+            <div class="overview-card">
+                <h3>🎯 Interactive Quiz Platform</h3>
+                <p>Department-based quizzes with dynamic, randomized question selection. Keeps learning engaging and personalized.</p>
+            </div>
+            <div class="overview-card">
+                <h3>✨ Engaging Features</h3>
+                <p>Point-based clues, limited attempts, and gamified experience motivate students to learn actively and consistently.</p>
+            </div>
+            <div class="overview-card">
+                <h3>🎨 Animated UI</h3>
+                <p>Department-themed backgrounds and card transitions provide a visually immersive learning experience.</p>
+            </div>
+            <div class="overview-card">
+                <h3>📚 Learning Enhancement</h3>
+                <p>Reduces cognitive overload, encourages repeated interaction, and improves knowledge retention over traditional quizzes.</p>
+            </div>
+            <div class="overview-card">
+                <h3>🚀 Modern Tech & Design</h3>
+                <p>Combines HTML, CSS, JavaScript, and gamification principles to deliver an engaging and adaptive learning platform.</p>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- FEATURES -->
+<div class="page" id="features">
+    <section>
+        <h2 class="section-title">Key Features</h2>
+        <p class="section-subtitle">Interactive and engaging features</p>
+        <div class="features-grid">
+            <div class="feature-card">🎮 Interactive Interface</div>
+            <div class="feature-card">📱 Responsive Design</div>
+            <div class="feature-card">🔄 Dynamic Loading</div>
+            <div class="feature-card">⚡ Real-time Feedback</div>
+        </div>
+    </section>
+</div>
+
+<!-- TECH -->
+<div class="page" id="tech">
+    <section>
+        <h2 class="section-title">Technology Stack</h2>
+        <p class="section-subtitle">Built with modern web technologies</p>
+        <div class="tech-grid">
+            <div class="tech-card">🌐 HTML5</div>
+            <div class="tech-card">🎨 CSS3</div>
+            <div class="tech-card">⚙️ JavaScript</div>
+            <div class="tech-card">🚀 GitHub Pages</div>
+        </div>
+    </section>
+</div>
+
+<!-- BENEFITS -->
+<div class="page" id="benefits">
+    <section>
+        <h2 class="section-title">Benefits & Impact</h2>
+        <p class="section-subtitle">How FlashCard Quiz transforms learning</p>
+        <div class="benefits-grid">
+            <div class="benefits-category">🎓 Educational Value
+                <ul><li>Enhanced Learning</li><li>Immediate Feedback</li></ul>
+            </div>
+            <div class="benefits-category">💻 Technical Skills
+                <ul><li>Frontend Development</li><li>Responsive Design</li></ul>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- CREDITS -->
+<div class="page" id="credits">
+    <section>
+        <h2 class="section-title">Credits & Acknowledgements</h2>
+        <p>Special thanks to everyone who contributed to this project and to the open-source community for the resources and inspiration.</p>
+        <ul style="list-style: none; padding: 0; margin-top: 30px; text-align: left; max-width: 600px; margin-left: auto; margin-right: auto;">
+            <li>👨‍💻 Developer: Harsha</li>
+            <li>👨‍🏫 Faculty Guide: Dr.P K Venkateswar Lal</li>
+            <li>📋 Class In-charge: Mr.R.Sivaiah</li>
+            <li>🏛️ Head of the department: Dr.P.Venkateswara Rao</li>
+            <li>🌐 Hosted on: GitHub Pages</li>
+            <li>🎨 Icons & Illustrations: Open-source resources</li>
+            <li>📚 Learning Platform Inspiration: FlashCard-based interactive tools</li>
+        </ul>
+    </section>
+</div>
+
+<script>
+// NAVBAR SCROLL EFFECT
+window.addEventListener('scroll', () => {
+    const navbar = document.getElementById('navbar');
+    const progressBar = document.getElementById('progressBar');
+    if(window.scrollY>100){ navbar.classList.add('scrolled'); } else { navbar.classList.remove('scrolled'); }
+    const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+    const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    const scrolled = (winScroll/height)*100;
+    progressBar.style.width = scrolled+'%';
+});
+
+// PAGE NAVIGATION
+const navLinks = document.querySelectorAll('.nav-links a');
+const pages = document.querySelectorAll('.page');
+const pageTransitions = {
+    home: 'fade-in',
+    overview: 'slide-left',
+    features: 'slide-right',
+    tech: 'scale-up',
+    benefits: 'rotate',
+    credits: 'fade-in'
+};
+let currentPage = 'home';
+document.getElementById(currentPage).classList.add('active', pageTransitions[currentPage]);
+
+navLinks.forEach(link => {
+    link.addEventListener('click', (e)=>{
+        e.preventDefault();
+        const targetId = link.getAttribute('href').replace('#','');
+        if(targetId===currentPage) return;
+        const oldPage = document.getElementById(currentPage);
+        oldPage.classList.remove('active', pageTransitions[currentPage]);
+        const newPage = document.getElementById(targetId);
+        newPage.classList.add('active', pageTransitions[targetId]);
+        currentPage = targetId;
+        navLinks.forEach(l=>l.classList.remove('active'));
+        link.classList.add('active');
+        window.scrollTo(0,0);
+    });
+});
+</script>
+
+</body>
+</html>
