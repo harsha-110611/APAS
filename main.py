@@ -84,14 +84,14 @@ def main():
     print("🤖 Assistant — Code Review & Refactor Mode")
 
     # Step 1: File explanation
-    file_path = input("\nEnter file path to review (relative): ").strip()
+    file_path = input("\nEnter a FILE path to review (e.g., analyzer/file_scanner.py):\n").strip()
     print("\n📄 File Explanation:")
     print(assistant.explain_file(file_path))
 
     # Step 2: Controlled refactor request
     goal = input(
-        "\n🛠️ Describe refactor goal "
-        "(e.g., 'split file', 'refactor long functions'): "
+        "Describe ONE refactor goal (examples: \"split file\", \"refactor long functions\"):\n"
+
     ).strip()
 
     print("\n🔧 Refactor Suggestion:")
