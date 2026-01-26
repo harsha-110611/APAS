@@ -38,6 +38,8 @@ def main():
     scan = scan_project(target)
     print("✔ Scan complete")
 
+    has_source_files = scan.get("language_counts", {}).get("python", 0) > 0
+
     # 2. Structure
     structure = analyze_structure(
         target,
@@ -64,13 +66,13 @@ def main():
     print("✔ Documentation analysis complete")
     print(f"📘 Documentation score: {docs['documentation_score']}\n")
 
-    # 6. Final score
-    final = compute_final_score(structure, quality, complexity, docs)
+    # 6. Final score (Fix-1 applied)
+    final = compute_final_score(scan, structure, quality, complexity, docs)
 
     # 7. Insights
     insights = generate_insights(final)
 
-    # 8. Assistant setup (Day 20)
+    # 8. Assistant setup
     analysis_report = {
         **final,
         "recommendations": insights["recommendations"]
@@ -78,27 +80,32 @@ def main():
     assistant = ProjectAssistant(analysis_report)
 
     # ─────────────────────────────────────────
-    # 🤖 DAY 20 — CODE-AWARE REFACTOR MODE
+    # 🤖 Assistant Interaction (Fix-2 applied)
     # ─────────────────────────────────────────
 
-    print("🤖 Assistant — Code Review & Refactor Mode")
+    if has_source_files:
+        print("🤖 Assistant — Code Review & Refactor Mode")
 
-    # Step 1: File explanation
-    file_path = input("\nEnter a FILE path to review (e.g., analyzer/file_scanner.py):\n").strip()
-    print("\n📄 File Explanation:")
-    print(assistant.explain_file(file_path))
+        file_path = input(
+            "\nEnter a FILE path to review (e.g., analyzer/file_scanner.py):\n"
+        ).strip()
 
-    # Step 2: Controlled refactor request
-    goal = input(
-        "Describe ONE refactor goal (examples: \"split file\", \"refactor long functions\"):\n"
+        print("\n📄 File Explanation:")
+        print(assistant.explain_file(file_path))
 
-    ).strip()
+        goal = input(
+            '\nDescribe ONE refactor goal '
+            '(examples: "split file", "refactor long functions"):\n'
+        ).strip()
 
-    print("\n🔧 Refactor Suggestion:")
-    print(assistant.refactor_file(file_path, goal))
+        print("\n🔧 Refactor Suggestion:")
+        print(assistant.refactor_file(file_path, goal))
+    else:
+        print("🤖 Assistant — Code Review Skipped")
+        print("No source files detected in this project.\n")
 
     # ─────────────────────────────────────────
-    # 9. Full report (after assistant interaction)
+    # 9. Final report & visualization
     # ─────────────────────────────────────────
 
     report_text = format_report(final, insights)
